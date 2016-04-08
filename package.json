@@ -1,6 +1,6 @@
 {
   "name": "gl-skydome-sun",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Draws a skydome with a sun into a 3D scene.",
   "main": "index.js",
   "scripts": {
