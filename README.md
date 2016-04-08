@@ -30,7 +30,7 @@ scene. The optinal arguments are
 * `opts.sunDirection` A unit vector that describes the position of the sun on the
 skydome. Note that it is assumed that this is a unit vector!
 * `opts.sunColor` The color of the sun.
-* `opts.sunSize` The size of the sun. Should be in the range `[0,500]`
+* `opts.sunSize` The size of the sun. Should be in the range `[0,500]`.
 
 ### Methods
 
