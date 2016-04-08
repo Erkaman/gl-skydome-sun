@@ -6,6 +6,7 @@ http://erkaman.github.io/gl-skydome-sun/
 
 ![text](images/bunny_sun.jpg)
 
+[![NPM](https://nodei.co/npm/gl-skydome-sun.png)](https://www.npmjs.com/package/gl-skydome-sun)
 
 ## Install
 
