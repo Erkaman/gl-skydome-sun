@@ -1,59 +1,42 @@
-# gl-skybox
+# gl-skydome-sun
 
-Draws a skybox into a 3D scene.
+Draws a skydome with a sun into a 3D scene. This project is a fork of the
+module gl-skybox.
+
+![text](images/bunny_sun.jpg)
+
 
 ## Install
 
 ```sh
-npm install gl-skybox
-```
-
-## Example
-
-```js
-var mat4 = require('gl-mat4')
-var createCubemap = require('gl-cubemap-placeholder')
-var createSkybox = require('gl-skybox')
-
-var cubemap = createCubemap(gl, 512)
-cubemap.generateMipmap()
-cubemap.minFilter = gl.LINEAR_MIPMAP_LINEAR
-cubemap.magFilter = gl.LINEAR
-
-var skybox = createSkybox(gl, cubemap)
-
-var view = mat4.create()
-var projection = mat4.create()
-
-mat4.lookAt(view, [0, 0, 0], [0, 0, -1], [0, 1, 0])
-mat4.perspective(projection, Math.PI / 2, width/height, 0.1, 10.0)
-
-skybox.draw({
-  view: view,
-  projection: projection
-})
-
+npm install gl-skydome-sun
 ```
 
 ## API
 
 ```js
-var createSkybox = require('gl-skybox')
+var createSkydome = require('gl-skydome-sun')
 ```
 
 ### Constructor
 
-#### `var skybox = createSkybox(gl, cubemap)`
+#### `var skydome = createSkydome(gl[, opts])`
 
-Takes a WebGL context `gl` and a [gl-texture-cube](https://github.com/wwwtyro/gl-texture-cube)
-object `cubemap`. Returns an object `skybox` ready for rendering into your
-scene.
+Takes a WebGL context `gl`. Returns an object `skybox` ready for rendering into your
+scene. The optinal arguments are
+
+* `opts.lowerColor` the color of the lower hemisphere of the skydome.
+* `opts.upperColor` the color of the upper hemisphere of the skydome.
+* `opts.sunDirection` A unit vector that describes the position of the sun on the
+skydome. Note that it is assumed that this is a unit vector!
+* `opts.sunColor` The color of the sun.
+* `opts.sunSize` The size of the sun. Should be in the range `[0,500]`
 
 ### Methods
 
-#### `skybox.draw(camera)`
+#### `skydome.draw(camera)`
 
-Draws the skybox into your scene.
+Draws the skydome and sun into your scene.
 
 Takes a `camera` object that defines the view and projection matrices:
 
@@ -64,8 +47,8 @@ Takes a `camera` object that defines the view and projection matrices:
 }
 ```
 
-This function will take care of centering the skybox and projection near/far
+This function will take care of centering the skydome and projection near/far
 values for you, so there is no need to make a view/projection matrix specifically
-for rendering the skybox. It will also disable depth buffer read/writes and
+for rendering the skydome. It will also disable depth buffer read/writes and
 then restore them to whatever you had them set to before returning, so there's
 no need to handle that yourself.

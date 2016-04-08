@@ -1,65 +1,80 @@
 'use strict'
 
 var mat4 = require('gl-mat4')
-var Box3D = require('geo-3d-box')
+var CreateSphere = require('primitive-sphere')
 var Geometry = require('gl-geometry')
 var glShader = require('gl-shader')
 var glslify = require('glslify')
 var createStack = require('gl-state')
 
-module.exports = createSkybox
+module.exports = createSkydome
 
-function Skybox (gl, cubemap) {
-  var box = Box3D({size: 2})
-  box = Geometry(gl)
-    .attr('aPosition', box.positions)
-    .faces(box.cells)
+function Skydome (gl, opts) {
+    opts = opts || {}
 
-  var program = glShader(gl, glslify('./skybox.vert'), glslify('./skybox.frag'))
+    var lowerColor = opts.lowerColor || [0.76, 0.76, 0.87]
+    var upperColor =  opts.upperColor || [0.26, 0.47, 0.83]
+    var sunDirection = opts.sunDirection || [0.71, 0.71, 0]
+    var sunColor =  opts.sunColor || [0.8,0.4,0.0]
+    var sunSize =  opts.sunSize || 20.0
 
-  var stack = createStack(gl, [
-    gl.DEPTH_TEST,
-    gl.DEPTH_WRITEMASK,
-    gl.CULL_FACE_MODE,
-    gl.CULL_FACE
-  ])
+    var sphere = CreateSphere(1, {segments: 50} );
 
-  this.draw = function (camera) {
-    // Store the gl state.
-    stack.push()
+    sphere = Geometry(gl)
+        .attr('aPosition', sphere.positions)
+        .faces(sphere.cells)
 
-    // Enable front face culling.
-    gl.enable(gl.CULL_FACE)
-    gl.cullFace(gl.FRONT)
+    var program = glShader(gl, glslify('./skydome.vert'), glslify('./skydome.frag'))
 
-    // Disble depth test & write.
-    gl.disable(gl.DEPTH_TEST)
-    gl.depthMask(false)
+    var stack = createStack(gl, [
+        gl.DEPTH_TEST,
+        gl.DEPTH_WRITEMASK,
+        gl.CULL_FACE_MODE,
+        gl.CULL_FACE
+    ])
 
-    // Remove translation from the view matrix.
-    var view = new Float32Array(camera.view)
-    mat4.invert(view, view)
-    view[12] = view[13] = view[14] = 0.0
-    mat4.invert(view, view)
+    this.draw = function (camera) {
+        // Store the gl state.
+        stack.push()
 
-    // Set the projection near/far to 0.1/10.
-    var projection = new Float32Array(camera.projection)
-    projection[10] = -1.0202020406723022
-    projection[14] = -0.20202019810676575
+        // Enable front face culling.
+        gl.enable(gl.CULL_FACE)
+        gl.cullFace(gl.FRONT)
 
-    // Render the skybox.
-    program.bind()
-    box.bind(program)
-    program.uniforms.uTexture = cubemap.bind(0)
-    program.uniforms.uView = view
-    program.uniforms.uProjection = projection
-    box.draw()
+        // Disble depth test & write.
+        gl.disable(gl.DEPTH_TEST)
+        gl.depthMask(false)
 
-    // Restore the gl state.
-    stack.pop()
-  }
+        // Remove translation from the view matrix.
+        var view = new Float32Array(camera.view)
+        mat4.invert(view, view)
+        view[12] = view[13] = view[14] = 0.0
+        mat4.invert(view, view)
+
+        // Set the projection near/far to 0.1/10.
+        var projection = new Float32Array(camera.projection)
+        projection[10] = -1.0202020406723022
+        projection[14] = -0.20202019810676575
+
+        // Render the skydome.
+        program.bind()
+        sphere.bind(program)
+        program.uniforms.uView = view
+        program.uniforms.uProjection = projection
+
+        program.uniforms.uLowerColor = lowerColor
+        program.uniforms.uUpperColor =  upperColor
+        program.uniforms.uSunDirection = sunDirection
+        program.uniforms.uSunColor =  sunColor
+        program.uniforms.uSunSize = sunSize
+
+        sphere.draw()
+
+        // Restore the gl state.
+        stack.pop()
+    }
 }
 
-function createSkybox (gl, cubemap) {
-  return new Skybox(gl, cubemap)
+function createSkydome (gl, opts) {
+    return new Skydome(gl, opts)
 }

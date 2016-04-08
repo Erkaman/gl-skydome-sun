@@ -1,7 +1,7 @@
 {
-  "name": "gl-skybox",
+  "name": "gl-skydome-sun",
   "version": "1.0.1",
-  "description": "Draws a skybox into a 3D scene.",
+  "description": "Draws a skydome with a sun into a 3D scene.",
   "main": "index.js",
   "scripts": {
     "start": "budo --live example/index.js -- -t glslify",
@@ -9,28 +9,34 @@
   },
   "keywords": [
     "stackgl",
-    "skybox"
+    "skydome",
+    "sun",
+    "glsl",
+    "gl",
+    "webgl"
   ],
-  "author": "Rye Terrell <ryeterrell@ryeterrell.net> (http://wwwtyro.github.io)",
+  "author": "Eric Arnebäck <arnebackeric@gmail.com> (https://github.com/Erkaman)",
   "license": "Unlicense",
   "devDependencies": {
     "budo": "^7.1.0",
     "bunny": "^1.0.1",
-    "gl-cubemap-placeholder": "^2.0.1",
     "gl-geometry": "^1.3.0",
     "gl-mat4": "^1.1.4",
+    "gl-now": "^1.4.0",
     "gl-shader": "^4.1.1",
+    "gl-vec3": "^1.0.3",
     "glslify": "^5.0.0",
     "normals": "^1.0.1",
+    "orbit-camera": "^1.0.0",
     "standard": "^5.4.1"
   },
   "dependencies": {
-    "geo-3d-box": "^1.0.4",
     "gl-geometry": "^1.3.0",
     "gl-mat4": "^1.1.4",
     "gl-shader": "^4.1.1",
     "gl-state": "^1.0.0",
-    "glslify": "^5.0.0"
+    "glslify": "^5.0.0",
+    "primitive-sphere": "^2.0.0"
   },
   "directories": {
     "example": "example"
@@ -42,10 +48,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wwwtyro/gl-skybox.git"
+    "url": "https://github.com/Erkaman/gl-skydome-sun.git"
   },
-  "bugs": {
-    "url": "https://github.com/wwwtyro/gl-skybox/issues"
-  },
-  "homepage": "https://github.com/wwwtyro/gl-skybox#readme"
+  "homepage": "https://github.com/Erkaman/gl-skydome-sun#readme"
 }

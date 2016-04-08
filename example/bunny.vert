@@ -8,7 +8,6 @@ precision mediump float;
 attribute vec3 aPosition;
 attribute vec3 aNormal;
 
-// This is passed from here to be used in `bunny.frag`.
 varying vec3 vNormal;
 
 uniform mat4 uProjection;
@@ -18,9 +17,5 @@ uniform mat4 uView;
 void main() {
   vNormal = aNormal;
 
-  // - `uProjection` will apply our perspective matrix, and
-  // - `uView` will apply our camera transforms.
-  // - `uModel` is unused here, but is traditionally used to
-  //   move the object around the scene.
   gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
 }

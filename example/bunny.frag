@@ -1,12 +1,15 @@
 precision mediump float;
 
-// Sets the color of the current fragment (pixel)
-// to display the normal at the current position.
-// Using `abs()` to prevent negative values, which
-// would just end up being black.
-
 varying vec3 vNormal;
 
 void main() {
-  gl_FragColor = vec4(abs(vNormal), 1.0);
+
+    vec3 rabbitColor = vec3(0.7);
+
+    vec3 ambient = 0.7 * rabbitColor;
+
+    float phong = dot(vNormal, vec3(0.71, 0.71, 0) );
+    vec3 diffuse = phong * rabbitColor;
+
+    gl_FragColor = vec4(ambient + diffuse, 1.0);
 }
