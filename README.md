@@ -1,7 +1,8 @@
 # gl-skydome-sun
 
 Draws a skydome with a sun into a 3D scene. This project is a fork of the
-module gl-skybox.
+module gl-skybox. Demo:
+http://erkaman.github.io/gl-skydome-sun/
 
 ![text](images/bunny_sun.jpg)
 
