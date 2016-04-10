@@ -38,7 +38,7 @@ shell.on("gl-init", function () {
 
     bunnyProgram = glShader(gl, glslify('./bunny.vert'), glslify('./bunny.frag'))
 
-    skydome = createSkydome(gl, {sunDirection : sunDir  } )
+    skydome = createSkydome(gl )
 
     gl.clearColor(1, 0, 1, 1)
 })
@@ -63,10 +63,17 @@ shell.on("gl-render", function (t) {
 
     mat4.perspective(projection, Math.PI / 2, canvas.width / canvas.height, 0.1, 200.0)
 
-    skydome.draw({
+    skydome.draw(
+        // camera
+        {
         view: view,
         projection: projection
-    })
+        },
+        //opts
+        {
+            sunDirection : sunDir,
+            renderSun : true
+        })
 
     bunnyProgram.bind()
     bunnyGeom.bind(bunnyProgram)
