@@ -39,7 +39,7 @@ shell.on("gl-init", function () {
 
     bunnyProgram = glShader(gl, "// Our vertex shader is run once for each of these\n// vectors, to determine the final position of the vertex\n// on the screen and pass data off to the fragment shader.\n\nprecision mediump float;\n#define GLSLIFY 1\n\n// Our attributes, i.e. the arrays of vectors in the bunny mesh.\nattribute vec3 aPosition;\nattribute vec3 aNormal;\n\nvarying vec3 vNormal;\n\nuniform mat4 uProjection;\nuniform mat4 uModel;\nuniform mat4 uView;\n\nvoid main() {\n  vNormal = aNormal;\n\n  gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);\n}\n", "precision mediump float;\n#define GLSLIFY 1\n\nvarying vec3 vNormal;\n\nvoid main() {\n\n    vec3 rabbitColor = vec3(0.7);\n\n    vec3 ambient = 0.7 * rabbitColor;\n\n    float phong = dot(vNormal, vec3(0.71, 0.71, 0) );\n    vec3 diffuse = phong * rabbitColor;\n\n    gl_FragColor = vec4(ambient + diffuse, 1.0);\n}\n")
 
-    skydome = createSkydome(gl, {sunDirection : sunDir  } )
+    skydome = createSkydome(gl )
 
     gl.clearColor(1, 0, 1, 1)
 })
@@ -64,10 +64,17 @@ shell.on("gl-render", function (t) {
 
     mat4.perspective(projection, Math.PI / 2, canvas.width / canvas.height, 0.1, 200.0)
 
-    skydome.draw({
+    skydome.draw(
+        // camera
+        {
         view: view,
         projection: projection
-    })
+        },
+        //opts
+        {
+            sunDirection : sunDir,
+            renderSun : true
+        })
 
     bunnyProgram.bind()
     bunnyGeom.bind(bunnyProgram)
@@ -102,14 +109,7 @@ var createStack = require('gl-state')
 
 module.exports = createSkydome
 
-function Skydome (gl, opts) {
-    opts = opts || {}
-
-    var lowerColor = opts.lowerColor || [0.76, 0.76, 0.87]
-    var upperColor =  opts.upperColor || [0.26, 0.47, 0.83]
-    var sunDirection = opts.sunDirection || [0.71, 0.71, 0]
-    var sunColor =  opts.sunColor || [0.8,0.4,0.0]
-    var sunSize =  opts.sunSize || 20.0
+function Skydome (gl) {
 
     var sphere = CreateSphere(1, {segments: 50} );
 
@@ -117,7 +117,7 @@ function Skydome (gl, opts) {
         .attr('aPosition', sphere.positions)
         .faces(sphere.cells)
 
-    var program = glShader(gl, "#define GLSLIFY 1\n#define SHADER_NAME skybox.vert\n\nattribute vec3 aPosition;\n\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nvarying vec3 vDir;\n\nvoid main() {\n    gl_Position = uProjection * uView * vec4(aPosition, 1.0);\n    vDir = normalize(aPosition);\n}\n", "#define SHADER_NAME skybox.frag\n\nprecision highp float;\n#define GLSLIFY 1\n\nuniform samplerCube uTexture;\n\nuniform vec3 uLowerColor;\nuniform vec3 uUpperColor;\nuniform vec3 uSunDirection;\nuniform vec3 uSunColor;\nuniform float uSunSize; // in range [0, 500]\n\n// direction from the center of skybox to the current fragment.\nvarying vec3 vDir;\n\nvoid main() {\n\n  vec3 direction = vDir;\n\n  float a = max(0.0, dot(direction, vec3(0.0, 1.0, 0.0)));\n  vec3 skyColor = mix(uLowerColor, uUpperColor, a);\n\n  float sunTheta = max(dot(direction, uSunDirection), 0.0);\n\n  // draw sun.\n  vec3 sun = max(sunTheta- (1.0 - uSunSize / 1000.0  ) , 0.0)*uSunColor*51.0;\n\n  // create a nice, atmospheric ring around the sun.\n  vec3 sunAtmosphere =  max(sunTheta- (  1.0 - (uSunSize+15.0) / 1000.0 ) , 0.0)  *uSunColor*51.0;\n\n gl_FragColor = vec4(skyColor +sun +sunAtmosphere, 1.0);\n}\n")
+    var program = glShader(gl, "#define GLSLIFY 1\n#define SHADER_NAME skybox.vert\n\nattribute vec3 aPosition;\n\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nvarying vec3 vDir;\n\nvoid main() {\n    gl_Position = uProjection * uView * vec4(aPosition, 1.0);\n    vDir = normalize(aPosition);\n}\n", "#define SHADER_NAME skybox.frag\n\nprecision highp float;\n#define GLSLIFY 1\n\nuniform samplerCube uTexture;\n\nuniform vec3 uLowerColor;\nuniform vec3 uUpperColor;\nuniform vec3 uSunDirection;\nuniform vec3 uSunColor;\nuniform float uSunSize; // in range [0, 500]\nuniform float uRenderSun;\n\n// direction from the center of skybox to the current fragment.\nvarying vec3 vDir;\n\nvoid main() {\n\n  vec3 direction = vDir;\n\n  float a = max(0.0, dot(direction, vec3(0.0, 1.0, 0.0)));\n  vec3 skyColor = mix(uLowerColor, uUpperColor, a);\n\n  float sunTheta = max(dot(direction, uSunDirection), 0.0);\n\n  // draw sun.\n  vec3 sun = max(sunTheta- (1.0 - uSunSize / 1000.0  ) , 0.0)*uSunColor*51.0;\n\n  // create a nice, atmospheric ring around the sun.\n  vec3 sunAtmosphere =  max(sunTheta- (  1.0 - (uSunSize+15.0) / 1000.0 ) , 0.0)  *uSunColor*51.0;\n\n gl_FragColor = vec4(skyColor +(sun +sunAtmosphere) * uRenderSun, 1.0);\n}\n")
 
     var stack = createStack(gl, [
         gl.DEPTH_TEST,
@@ -126,7 +126,38 @@ function Skydome (gl, opts) {
         gl.CULL_FACE
     ])
 
-    this.draw = function (camera) {
+    this.constructViewProjection = function(camera) {
+        // Remove translation from the view matrix.
+        var view = new Float32Array(camera.view)
+        mat4.invert(view, view)
+        view[12] = view[13] = view[14] = 0.0
+        mat4.invert(view, view)
+
+        // Set the projection near/far to 0.1/10.
+        var projection = new Float32Array(camera.projection)
+        projection[10] = -1.0202020406723022
+        projection[14] = -0.20202019810676575
+
+        return {
+            view: view,
+            projection: projection
+        }
+
+    }
+
+    this.draw = function (camera, opts) {
+
+        opts = opts || {}
+
+        var lowerColor = opts.lowerColor || [0.76, 0.76, 0.87]
+        var upperColor =  opts.upperColor || [0.26, 0.47, 0.83]
+        var sunDirection = opts.sunDirection || [0.71, 0.71, 0]
+        var sunColor =  opts.sunColor || [0.8,0.4,0.0]
+        var sunSize =  opts.sunSize || 20.0
+        var renderSun = (typeof opts.renderSun !== 'undefined' ) ?  opts.renderSun  : true
+
+
+
         // Store the gl state.
         stack.push()
 
@@ -138,16 +169,12 @@ function Skydome (gl, opts) {
         gl.disable(gl.DEPTH_TEST)
         gl.depthMask(false)
 
-        // Remove translation from the view matrix.
-        var view = new Float32Array(camera.view)
-        mat4.invert(view, view)
-        view[12] = view[13] = view[14] = 0.0
-        mat4.invert(view, view)
 
-        // Set the projection near/far to 0.1/10.
-        var projection = new Float32Array(camera.projection)
-        projection[10] = -1.0202020406723022
-        projection[14] = -0.20202019810676575
+        var vp = this.constructViewProjection(camera);
+
+        var view = vp.view;
+        var projection = vp.projection;
+
 
         // Render the skydome.
         program.bind()
@@ -160,6 +187,8 @@ function Skydome (gl, opts) {
         program.uniforms.uSunDirection = sunDirection
         program.uniforms.uSunColor =  sunColor
         program.uniforms.uSunSize = sunSize
+        program.uniforms.uRenderSun = renderSun ? 1.0 : 0.0
+
 
         sphere.draw()
 
@@ -168,8 +197,8 @@ function Skydome (gl, opts) {
     }
 }
 
-function createSkydome (gl, opts) {
-    return new Skydome(gl, opts)
+function createSkydome (gl) {
+    return new Skydome(gl)
 }
 
 },{"gl-geometry":24,"gl-mat4":35,"gl-shader":61,"gl-state":68,"primitive-sphere":124}],3:[function(require,module,exports){
