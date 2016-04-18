@@ -37,11 +37,12 @@ shell.on("gl-init", function () {
     bunnyGeom.attr('aNormal', normals.vertexNormals(bunny.cells, bunny.positions))
     bunnyGeom.faces(bunny.cells)
 
-    bunnyProgram = glShader(gl, "// Our vertex shader is run once for each of these\n// vectors, to determine the final position of the vertex\n// on the screen and pass data off to the fragment shader.\n\nprecision mediump float;\n#define GLSLIFY 1\n\n// Our attributes, i.e. the arrays of vectors in the bunny mesh.\nattribute vec3 aPosition;\nattribute vec3 aNormal;\n\nvarying vec3 vNormal;\n\nuniform mat4 uProjection;\nuniform mat4 uModel;\nuniform mat4 uView;\n\nvoid main() {\n  vNormal = aNormal;\n\n  gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);\n}\n", "precision mediump float;\n#define GLSLIFY 1\n\nvarying vec3 vNormal;\n\nvoid main() {\n\n    vec3 rabbitColor = vec3(0.7);\n\n    vec3 ambient = 0.7 * rabbitColor;\n\n    float phong = dot(vNormal, vec3(0.71, 0.71, 0) );\n    vec3 diffuse = phong * rabbitColor;\n\n    gl_FragColor = vec4(ambient + diffuse, 1.0);\n}\n")
+    bunnyProgram = glShader(gl, "precision mediump float;\n#define GLSLIFY 1\n\nattribute vec3 aPosition;\nattribute vec3 aNormal;\n\nvarying vec3 vNormal;\n\nuniform mat4 uProjection;\nuniform mat4 uModel;\nuniform mat4 uView;\n\nvoid main() {\n  vNormal = aNormal;\n\n  gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);\n}\n", "precision mediump float;\n#define GLSLIFY 1\n\nvarying vec3 vNormal;\n\nvoid main() {\n\n    vec3 rabbitColor = vec3(0.7);\n\n    vec3 ambient = 0.7 * rabbitColor;\n\n    float phong = dot(vNormal, vec3(0.71, 0.71, 0) );\n    vec3 diffuse = phong * rabbitColor;\n\n    gl_FragColor = vec4(ambient + diffuse, 1.0);\n}\n")
 
     skydome = createSkydome(gl )
 
     gl.clearColor(1, 0, 1, 1)
+
 })
 
 
@@ -73,8 +74,12 @@ shell.on("gl-render", function (t) {
         //opts
         {
             sunDirection : sunDir,
-            renderSun : true
+            doDithering:true,
+            renderSun:true,
+
+
         })
+
 
     bunnyProgram.bind()
     bunnyGeom.bind(bunnyProgram)
@@ -117,7 +122,7 @@ function Skydome (gl) {
         .attr('aPosition', sphere.positions)
         .faces(sphere.cells)
 
-    var program = glShader(gl, "#define GLSLIFY 1\n#define SHADER_NAME skybox.vert\n\nattribute vec3 aPosition;\n\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nvarying vec3 vDir;\n\nvoid main() {\n    gl_Position = uProjection * uView * vec4(aPosition, 1.0);\n    vDir = normalize(aPosition);\n}\n", "#define SHADER_NAME skybox.frag\n\nprecision highp float;\n#define GLSLIFY 1\n\nuniform samplerCube uTexture;\n\nuniform vec3 uLowerColor;\nuniform vec3 uUpperColor;\nuniform vec3 uSunDirection;\nuniform vec3 uSunColor;\nuniform float uSunSize; // in range [0, 500]\nuniform float uRenderSun;\n\n// direction from the center of skybox to the current fragment.\nvarying vec3 vDir;\n\nvoid main() {\n\n  vec3 direction = vDir;\n\n  float a = max(0.0, dot(direction, vec3(0.0, 1.0, 0.0)));\n  vec3 skyColor = mix(uLowerColor, uUpperColor, a);\n\n  float sunTheta = max(dot(direction, uSunDirection), 0.0);\n\n  // draw sun.\n  vec3 sun = max(sunTheta- (1.0 - uSunSize / 1000.0  ) , 0.0)*uSunColor*51.0;\n\n  // create a nice, atmospheric ring around the sun.\n  vec3 sunAtmosphere =  max(sunTheta- (  1.0 - (uSunSize+15.0) / 1000.0 ) , 0.0)  *uSunColor*51.0;\n\n gl_FragColor = vec4(skyColor +(sun +sunAtmosphere) * uRenderSun, 1.0);\n}\n")
+    var program = glShader(gl, "\nprecision mediump float;\n#define GLSLIFY 1\n\nattribute vec3 aPosition;\n\nuniform mat4 uView;\nuniform mat4 uProjection;\n\nvarying vec3 vDir;\n\nvoid main() {\n    gl_Position = uProjection * uView * vec4(aPosition, 1.0);\n    vDir = normalize(aPosition);\n}\n", "precision mediump float;\n#define GLSLIFY 1\n\nhighp float random(vec2 co)\n{\n    highp float a = 12.9898;\n    highp float b = 78.233;\n    highp float c = 43758.5453;\n    highp float dt= dot(co.xy ,vec2(a,b));\n    highp float sn= mod(dt,3.14);\n    return fract(sin(sn) * c);\n}\n\nuniform samplerCube uTexture;\n\nuniform vec3 uLowerColor;\nuniform vec3 uUpperColor;\nuniform vec3 uSunDirection;\nuniform vec3 uSunColor;\nuniform float uSunSize; // in range [0, 500]\nuniform float uRenderSun;\nuniform float uDoDithering;\nuniform float uDitheringAmmount;\n\n// direction from the center of skybox to the current fragment.\nvarying vec3 vDir;\n\nvec3 hash(vec3 p)\n{\n\treturn vec3(random(vec2(p.x, p.x+p.y+p.z) ));\n}\n\nvoid main() {\n\n  vec3 direction = vDir;\n\n  float a = max(0.0, dot(direction, vec3(0.0, 1.0, 0.0)));\n  vec3 skyColor = mix(uLowerColor, uUpperColor, a);\n\n  float sunTheta = max(dot(direction, uSunDirection), 0.0);\n\n  // draw sun.\n  vec3 sun = max(sunTheta- (1.0 - uSunSize / 1000.0  ) , 0.0)*uSunColor*51.0;\n\n  // create a nice, atmospheric ring around the sun.\n  vec3 sunAtmosphere =  max(sunTheta- (  1.0 - (uSunSize+15.0) / 1000.0 ) , 0.0)  *uSunColor*51.0;\n\n gl_FragColor = vec4(skyColor +(sun +sunAtmosphere) * uRenderSun + uDoDithering*hash(direction)*uDitheringAmmount , 1.0);\n}\n")
 
     var stack = createStack(gl, [
         gl.DEPTH_TEST,
@@ -155,6 +160,8 @@ function Skydome (gl) {
         var sunColor =  opts.sunColor || [0.8,0.4,0.0]
         var sunSize =  opts.sunSize || 20.0
         var renderSun = (typeof opts.renderSun !== 'undefined' ) ?  opts.renderSun  : true
+        var doDithering = (typeof opts.doDithering !== 'undefined' ) ?  opts.doDithering  : true
+        var ditheringAmmount = opts.ditheringAmmount || 0.005
 
 
 
@@ -188,6 +195,8 @@ function Skydome (gl) {
         program.uniforms.uSunColor =  sunColor
         program.uniforms.uSunSize = sunSize
         program.uniforms.uRenderSun = renderSun ? 1.0 : 0.0
+        program.uniforms.uDoDithering = doDithering ? 1.0 : 0.0;
+        program.uniforms.uDitheringAmmount = ditheringAmmount;
 
 
         sphere.draw()
