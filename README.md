@@ -57,6 +57,10 @@ skydome. Note that it is assumed that this is a unit vector!
 * `opts.sunColor` The color of the sun.
 * `opts.sunSize` The size of the sun. Should be in the range `[0,500]`.
 * `opts.renderSun` Whether or not to render the sun. Default value is `true`
+* `opts.doDithering` Enables dithering. Dithering can be used to reduce banding artifacts in
+the rendered sky(the artifacts are mostly visible when the color of the sky is rather dark). Default value is `true`.
+* `opts.ditheringAmmount` The ammount of dithering to apply to every fragment
+of the rendered sky. Default value is `0.005`.
 
 
 

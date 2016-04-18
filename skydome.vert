@@ -1,4 +1,6 @@
-#define SHADER_NAME skybox.vert
+
+precision highp float;
+
 
 attribute vec3 aPosition;
 

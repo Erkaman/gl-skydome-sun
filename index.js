@@ -55,6 +55,8 @@ function Skydome (gl) {
         var sunColor =  opts.sunColor || [0.8,0.4,0.0]
         var sunSize =  opts.sunSize || 20.0
         var renderSun = (typeof opts.renderSun !== 'undefined' ) ?  opts.renderSun  : true
+        var doDithering = (typeof opts.doDithering !== 'undefined' ) ?  opts.doDithering  : true
+        var ditheringAmmount = opts.ditheringAmmount || 0.005
 
 
 
@@ -88,6 +90,8 @@ function Skydome (gl) {
         program.uniforms.uSunColor =  sunColor
         program.uniforms.uSunSize = sunSize
         program.uniforms.uRenderSun = renderSun ? 1.0 : 0.0
+        program.uniforms.uDoDithering = doDithering ? 1.0 : 0.0;
+        program.uniforms.uDitheringAmmount = ditheringAmmount;
 
 
         sphere.draw()

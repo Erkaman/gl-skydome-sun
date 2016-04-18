@@ -41,6 +41,7 @@ shell.on("gl-init", function () {
     skydome = createSkydome(gl )
 
     gl.clearColor(1, 0, 1, 1)
+
 })
 
 
@@ -72,8 +73,10 @@ shell.on("gl-render", function (t) {
         //opts
         {
             sunDirection : sunDir,
-            renderSun : true
+            doDithering:true
+
         })
+
 
     bunnyProgram.bind()
     bunnyGeom.bind(bunnyProgram)

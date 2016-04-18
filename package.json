@@ -4,7 +4,7 @@
   "description": "Draws a skydome with a sun into a 3D scene.",
   "main": "index.js",
   "scripts": {
-    "start": "budo --live example/index.js:example/bundle.js -- -t glslify",
+    "start": "budo --live example/index.js -- -t glslify",
     "test": "standard"
   },
   "keywords": [
@@ -35,6 +35,7 @@
     "gl-mat4": "^1.1.4",
     "gl-shader": "^4.1.1",
     "gl-state": "^1.0.0",
+    "glsl-random": "0.0.5",
     "glslify": "^5.0.0",
     "primitive-sphere": "^2.0.0"
   },
