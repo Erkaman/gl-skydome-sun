@@ -73,7 +73,9 @@ shell.on("gl-render", function (t) {
         //opts
         {
             sunDirection : sunDir,
-            doDithering:true
+            doDithering:true,
+            renderSun:true,
+
 
         })
 

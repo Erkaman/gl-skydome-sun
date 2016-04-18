@@ -1,7 +1,4 @@
-#define SHADER_NAME skybox.frag
-
-
-precision highp float;
+precision mediump float;
 
 #pragma glslify: random = require(glsl-random)
 
